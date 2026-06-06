@@ -4,21 +4,78 @@ import type { CSSProperties } from "react";
 import type { StatisticState } from "../types";
 
 function shell(state: StatisticState): CSSProperties {
-  return { width: state.width, minHeight: state.height, padding: state.padding, gap: state.gap, borderRadius: state.radius, border: `${state.borderWidth}px solid ${state.border}`, boxShadow: `0 ${Math.round(state.shadow / 3)}px ${state.shadow}px rgba(0,0,0,.28)`, background: state.background, color: state.foreground, fontFamily: state.fontFamily, opacity: state.disabled ? 0.55 : 1 };
+  return {
+    width: state.width,
+    minHeight: state.height,
+    padding: state.padding,
+    borderRadius: state.radius,
+    border: `${state.borderWidth}px solid ${state.border}`,
+    boxShadow: `0 ${Math.round(state.shadow / 3)}px ${state.shadow}px rgba(0,0,0,.28)`,
+    background: state.background,
+    color: state.foreground,
+    fontFamily: state.fontFamily,
+    opacity: state.disabled ? 0.6 : 1,
+  };
+}
+
+function trendCopy(state: StatisticState) {
+  if (state.previewState === "error") return "Metric needs attention";
+  if (state.previewState === "success") return "Metric is on target";
+  if (state.trendDirection === "down") return `${state.trend} decrease`;
+  if (state.trendDirection === "neutral") return `${state.trend} change`;
+  return `${state.trend} increase`;
+}
+
+function trendColor(state: StatisticState) {
+  if (state.previewState === "error" || state.trendDirection === "down") return "#f97316";
+  if (state.previewState === "success" || state.trendDirection === "up") return state.accent;
+  return state.muted;
 }
 
 export default function LivePreview({ state }: { state: StatisticState }) {
-  const model = state as Record<string, unknown>;
-  const numberValue = (key: string, fallback: number) => typeof model[key] === "number" ? model[key] : fallback;
-  const stringValue = (key: string, fallback: string) => typeof model[key] === "string" ? model[key] : fallback;
-  const boolValue = (key: string) => typeof model[key] === "boolean" ? model[key] : false;
-  const count = numberValue("itemCount", numberValue("rowCount", numberValue("slideCount", numberValue("imageCount", numberValue("filterCount", numberValue("controlCount", 5))))));
-  const items = Array.from({ length: count }, (_, index) => index + 1);
-  const badge = (text: string) => <span className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: state.border, color: state.accent }}>{text}</span>;
   const panel = shell(state);
-  if ("chartType" in model) return <section role="img" aria-label={state.ariaLabel} style={panel} className="grid content-center"><h3 style={{ fontSize: state.titleSize }}>{state.title}</h3><div className="flex items-end gap-3">{items.map((item) => <div key={item} className="w-10 rounded-t-xl" style={{ height: 36 + item * 18, background: state.accent }} />)}</div></section>;
-  if ("src" in model && ("showTimeline" in model || "showCaptions" in model)) return <section role={state.role} aria-label={state.ariaLabel} style={panel} className="grid content-center"><h3>{state.title}</h3>{"showTimeline" in model ? <audio controls muted={boolValue("muted")} loop={boolValue("loop")} preload={stringValue("preload", "metadata")} className="w-full" /> : <video controls muted={boolValue("muted")} loop={boolValue("loop")} preload={stringValue("preload", "metadata")} poster={stringValue("poster", "")} className="w-full rounded-xl bg-black/40" />}</section>;
-  if (state.role === "dialog") return <div className="grid place-items-center"><section role="dialog" aria-label={state.ariaLabel} style={panel} className="grid"><h3 style={{ fontSize: state.titleSize }}>{state.title}</h3><p style={{ color: stringValue("muted", "#94a3b8") }}>{state.description}</p><div className="flex gap-2"><button type="button" className="rounded-xl px-4 py-2" style={{ background: state.accent, color: "#020617" }}>Action</button><button type="button" className="rounded-xl border px-4 py-2" style={{ borderColor: state.border }}>Cancel</button></div></section></div>;
-  if (state.role === "table") return <table role="table" aria-label={state.ariaLabel} style={panel}><caption>{stringValue("caption", state.title)}</caption><tbody>{items.map((item) => <tr key={item}><th className="p-2 text-left">Row {item}</th><td className="p-2">{state.label}</td></tr>)}</tbody></table>;
-  return <section id={state.id} role={state.role} aria-label={state.ariaLabel} tabIndex={state.tabIndex} style={panel} className="grid content-center"><h3 style={{ fontSize: state.titleSize, fontWeight: state.fontWeight }}>{state.title}</h3><p style={{ color: stringValue("muted", "#94a3b8"), fontSize: state.bodySize }}>{state.description}</p><div className="flex flex-wrap gap-2">{items.map((item) => badge(`${state.label} ${item}`))}</div><p className="text-xs" style={{ color: stringValue("muted", "#94a3b8") }}>{state.helper} · {stringValue("previewState", "default")}</p></section>;
+  const trend = trendCopy(state);
+  const statusColor = trendColor(state);
+
+  return (
+    <section
+      id={state.id}
+      role={state.role}
+      aria-labelledby={`${state.id}-label`}
+      aria-describedby={`${state.id}-description ${state.id}-trend`}
+      tabIndex={state.tabIndex}
+      style={panel}
+      data-component="statistic"
+      data-preview-state={state.previewState}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p id={`${state.id}-label`} className="text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: state.muted }}>{state.label}</p>
+          <h3 style={{ fontSize: state.titleSize, fontWeight: state.fontWeight }}>{state.title}</h3>
+        </div>
+        <span role="status" className="rounded-full border px-3 py-1 text-xs font-semibold" style={{ borderColor: statusColor, color: statusColor }}>
+          {state.previewState}
+        </span>
+      </div>
+      <p id={`${state.id}-description`} className="mt-2" style={{ color: state.muted, fontSize: state.bodySize }}>{state.description}</p>
+      <div className="mt-6" aria-label={`${state.ariaLabel}: ${state.prefix}${state.value}${state.suffix ? ` ${state.suffix}` : ""}`}>
+        <p className="leading-none" style={{ fontSize: Math.max(state.titleSize * 2, 42), fontWeight: 900 }}>
+          <span>{state.prefix}</span>
+          <data value={state.value}>{state.value}</data>
+          {state.unit && <span className="ml-2 text-base font-semibold" style={{ color: state.muted }}>{state.unit}</span>}
+        </p>
+        {state.suffix && <p className="mt-2 text-sm" style={{ color: state.muted }}>{state.suffix}</p>}
+      </div>
+      <p id={`${state.id}-trend`} role="status" className="mt-5 inline-flex rounded-full border px-3 py-1 text-sm font-semibold" style={{ borderColor: statusColor, color: statusColor }}>
+        {trend}
+      </p>
+      {state.showSparkline && (
+        <svg aria-hidden="true" viewBox="0 0 240 64" className="mt-5 h-16 w-full overflow-visible">
+          <polyline points="0,46 32,38 64,42 96,24 128,30 160,14 192,20 240,8" fill="none" stroke={state.accent} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          <line x1="0" x2="240" y1="58" y2="58" stroke={state.border} strokeWidth="2" />
+        </svg>
+      )}
+      <p className="mt-4 text-xs" style={{ color: state.muted }}>{state.helper}</p>
+    </section>
+  );
 }
