@@ -15,6 +15,7 @@ function shell(state: StatisticState): CSSProperties {
     color: state.foreground,
     fontFamily: state.fontFamily,
     opacity: state.disabled ? 0.6 : 1,
+    transition: state.motion ? "opacity 200ms ease" : "none",
   };
 }
 
@@ -59,7 +60,7 @@ export default function LivePreview({ state }: { state: StatisticState }) {
       </div>
       <p id={`${state.id}-description`} className="mt-2" style={{ color: state.muted, fontSize: state.bodySize }}>{state.description}</p>
       <div className="mt-6" aria-label={`${state.ariaLabel}: ${state.prefix}${state.value}${state.suffix ? ` ${state.suffix}` : ""}`}>
-        <p className="leading-none" style={{ fontSize: Math.max(state.titleSize * 2, 42), fontWeight: 900 }}>
+        <p className="leading-none" style={{ fontSize: Math.max(state.titleSize * 2, 42), fontWeight: 900, transition: state.motion ? "font-size 200ms ease" : "none" }}>
           <span>{state.prefix}</span>
           <data value={state.value}>{state.value}</data>
           {state.unit && <span className="ml-2 text-base font-semibold" style={{ color: state.muted }}>{state.unit}</span>}
