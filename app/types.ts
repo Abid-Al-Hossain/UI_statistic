@@ -1,4 +1,4 @@
-export type SectionId = "presets" | "basics" | "metadata" | "content" | "items" | "behavior" | "layout" | "placement" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "transitions" | "focus-ring" | "states" | "accessibility";
+export type SectionId = "presets" | "basics" | "metadata" | "content" | "items" | "behavior" | "layout" | "placement" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "transitions" | "focus-ring" | "states" | "disabled" | "accessibility";
 
 export type StatisticState = {
   title: string;
@@ -59,6 +59,12 @@ export type StatisticState = {
   fontWeight: number;
   previewState: "default" | "hover" | "focus" | "active" | "open" | "closed" | "selected" | "loading" | "empty" | "error" | "success";
   disabled: boolean;
+  disabledOpacity: number;
+  disabledCursor: "not-allowed" | "default" | "pointer";
+  disabledUseCustomColors: boolean;
+  disabledBg: string;
+  disabledText: string;
+  disabledBorder: string;
   role: "region" | "group" | "status";
   value: string;
   unit: string;
@@ -67,6 +73,36 @@ export type StatisticState = {
   trend: string;
   trendDirection: string;
   showSparkline: boolean;
+  // Value
+  valueColor: string;
+  valueSize: number;
+  valueFontWeight: number;
+  // Label
+  labelColor: string;
+  labelSize: number;
+  // Unit / prefix / suffix
+  unitColor: string;
+  unitSize: number;
+  unitPosition: "prefix" | "suffix";
+  prefixColor: string;
+  suffixColor: string;
+  // Trend
+  trendUpColor: string;
+  trendDownColor: string;
+  trendNeutralColor: string;
+  // Sparkline
+  sparklineColor: string;
+  sparklineAreaColor: string;
+  sparklineType: "line" | "bar" | "area";
+  sparklineHeight: number;
+  // Description / comparison / help
+  descriptionColor: string;
+  descriptionSize: number;
+  comparisonLabel: string;
+  comparisonColor: string;
+  helpTextColor: string;
+  // Card mode
+  cardMode: "minimal" | "bordered" | "elevated";
 };
 
 export type StudioPreset = { id: string; family: string; archetype: string; variant: string; size: string; tags: string[]; state: Partial<StatisticState> & Record<string, unknown> };
@@ -139,6 +175,10 @@ export const SECTIONS: Array<{ id: SectionId; label: string }> = [
   {
     "id": "states",
     "label": "State Preview"
+  },
+  {
+    "id": "disabled",
+    "label": "Disabled"
   },
   {
     "id": "accessibility",
