@@ -12,10 +12,12 @@ export default function BehaviorSection({ state, update }: Props) {
   return (
     <div className="space-y-4">
       <SectionCard title="Trend" subtitle="Trend value, direction, and sparkline.">
+      <div className="space-y-4">
         <Input label="Trend value" value={state.trend} onChange={(value) => update("trend", value)} />
         <Select label="Trend direction" value={state.trendDirection} options={["up", "down", "neutral"]} onChange={(value) => update("trendDirection", value)} />
         <Switch label="Show sparkline" checked={state.showSparkline} onChange={(value) => update("showSparkline", value)} />
-      </SectionCard>
+      </div>
+    </SectionCard>
       <SectionCard title="State" subtitle="Component-level disabled state.">
         <Switch label="Disabled" checked={state.disabled} onChange={(value) => update("disabled", value)} />
       </SectionCard>
